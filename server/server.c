@@ -19,51 +19,64 @@ Git: https://github.com/eduvianna/sistema_arquivos.git
 
 //Biblioteca para threads
 #include <pthread.h>
+#include <unistd.h>
 
 #define PORT 3000
 #define MSG_SIZE 5000
-#define BUFFER_SIZE 1000
+#define BUFFER_SIZE 4096
 #define N_THREAD 10
 
 //Declaração buffer e client message
 char client_message[MSG_SIZE],
     buffer[BUFFER_SIZE];
 
+pthread_mutex_t mutex_manage_client = PTHREAD_MUTEX_INITIALIZER;
+
 void *connect_thread(void *arg)
 {
+    int size_msg;
     int new_sockfd = *((int *)arg);
-    recv(new_sockfd, client_message, MSG_SIZE, 0);
 
     //Tratamento de mensagens entre cliente e servidor
-    pthread_mutex_lock(&lock);
-    char *message = malloc(sizeof(client_message) + 20);
-    strcpy(message, "Bem Vindo ao Sistema de Arquivos XingLing!\n\0");
-    strcat(message, client_message);
-    strcpy(buffer, message);
-    free(message);
-    pthread_mutex_unlock(&lock);
-    sleep(1);
-    send(new_sockfd, buffer, 13, 0);
-    printf("Até Mais! \n");
-    close(new_sockfd);
-    pthread_exit(NULL);
-}
+    while (1)
+    {
+        memset(buffer, 0x0, MSG_SIZE);
+        if ((size_msg = recv(new_sockfd, buffer, BUFFER_SIZE, 0)) > 0)
+        {
+            pthread_mutex_lock(&mutex_manage_client); // Checa se o mutex está no estado liberado ou não
+            buffer[size_msg - 1] = '\0';
+            printf("-> %s\n", buffer);
+            strcpy(buffer, "-> \0");
+            send(new_sockfd, buffer, strlen(buffer), 0);
 
-pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-struct sockaddr_in local;
-struct sockaddr_in remote;
+            //Encerra conexão com um cliente quando o mesmo digitar exit
+            if (strcmp(buffer, "exit") == 0)
+            {
+                strcpy(buffer, "Até\n\0");
+                send(new_sockfd, buffer, strlen(buffer), 0);
+                pthread_mutex_unlock(&mutex_manage_client); // Libera o mutex para o próximo
+                close(new_sockfd);
+                pthread_exit(NULL);
+            }
+            pthread_mutex_unlock(&mutex_manage_client); // Libera o mutex para o próximo
+        }
+    }
+    sleep(1);
+}
 
 int main()
 {
+    //Estrutura necessaria para a criação do socket
+    struct sockaddr_in local;
+    struct sockaddr_storage remote;
+    socklen_t size_remote = sizeof(remote);
 
     int sockfd, client;
-    int size_remote = sizeof(remote);
-    int slen;
 
     //Criando N_THREADS
     pthread_t client_thread[N_THREAD];
 
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    sockfd = socket(AF_INET, SOCK_STREAM, 0); // Define descritor de socket com ipv4 com tcp
 
     if (sockfd == -1)
     { // Checka se houve erro na criação do socket
@@ -75,9 +88,9 @@ int main()
         printf("Socket Criado \n");
     }
 
+    // Seta os valores para a configuração do servidor
     local.sin_family = AF_INET;
     local.sin_port = htons(PORT);
-    //local.sin_addr.s_addr = inet_addr("IP");
     memset(local.sin_zero, 0x0, 8);
 
     //cria o link entra o ip e a porta para então realizar a conexão
@@ -90,9 +103,7 @@ int main()
     //Coloca a porta para escutar
     listen(sockfd, N_THREAD);
 
-    strcpy(buffer, "Bem Vindo ao Sistema de Arquivos XingLing!\n\0");
-
-    int i = 0;
+    int cont = 0; // contador de threads criadas
     while (1)
     {
         client = accept(sockfd, (struct sockaddr *)&remote, &size_remote);
@@ -103,28 +114,25 @@ int main()
             perror("Error client");
             exit(1);
         }
-
+        strcpy(buffer, "Bem Vindo ao Sistema de Arquivos XingsssLing!\n Para sair do sistema apenas digite 'exit'\n -> \0");
         if (send(client, buffer, strlen(buffer), 0))
         {
-            pthread_create(&client_thread[i], NULL, connect_thread);
-            printf("Aguardando ...\n");
-            while (1)
+            if ((pthread_create(&client_thread[cont], NULL, connect_thread, &client)) != 0)
             {
-                memset(buffer, 0x0, MSG_SIZE);
-                if ((slen = recv(client, buffer, MSG_SIZE, 0)) > 0)
+                perror("Error Thread ");
+            }
+            if (cont >= N_THREAD)
+            {
+                cont = 0;
+                while (cont < N_THREAD)
                 {
-                    buffer[slen - 1] = '\0';
-                    printf("Recebido: %s\n", buffer);
-                    if (strcmp(buffer, "exit") == 0)
-                    {
-                        close(client);
-                        break;
-                    }
+                    pthread_join(client_thread[cont++], NULL);
                 }
+                cont = 0;
             }
         }
     }
-    close(sockfd);
+    close(sockfd); // Encerra conexão do servidor
     printf("Servidor Encerrado!\n");
     return 0;
 }
