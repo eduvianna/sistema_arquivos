@@ -32,6 +32,15 @@ char client_message[MSG_SIZE],
 
 pthread_mutex_t mutex_manage_client = PTHREAD_MUTEX_INITIALIZER;
 
+//void criar_diretorio();
+//void remover_diretorio();
+//void entrar_diretorio();
+void mostrar_conteudo_diretorio();
+//void criar_arquivo();
+//void remover_arquivo();
+void escrever_arquivo();
+void mostrar_arquivo();
+
 void *connect_thread(void *arg)
 {
     int size_msg;
@@ -45,12 +54,79 @@ void *connect_thread(void *arg)
         {
             pthread_mutex_lock(&mutex_manage_client); // Checa se o mutex está no estado liberado ou não
             buffer[size_msg - 1] = '\0';
-            printf("-> %s\n", buffer);
-            strcpy(buffer, "-> \0");
-            send(new_sockfd, buffer, strlen(buffer), 0);
 
-            //Encerra conexão com um cliente quando o mesmo digitar exit
-            if (strcmp(buffer, "exit") == 0)
+            //Checa se o comando é para criar diretório
+            if (strncmp(buffer, "mkdir", 4) == 0)
+            {
+                if (system(buffer) == -1)
+                {
+                    strcpy(buffer, "Erro ao criar diretório.\n\0");
+                }
+                else
+                {
+                    strcpy(buffer, "Diretório criado com sucesso.\n\0");
+                }
+                send(new_sockfd, buffer, strlen(buffer), 0);
+            }
+
+            //Checa se o comando é para remover diretório
+            else if ((strncmp(buffer, "rm -r", 4) == 0) && (strncmp(buffer, "rm", 1) == 0))
+            {
+                if (system(buffer) == -1)
+                {
+                    strcpy(buffer, "Erro ao remover diretório.\n\0");
+                }
+                else
+                {
+                    strcpy(buffer, "Comando executado com sucesso.\n\0");
+                }
+                send(new_sockfd, buffer, strlen(buffer), 0);
+            }
+
+            //Checa se o comando é para acessar um diretório
+            else if (strncmp(buffer, "cd", 2) == 0)
+            {
+                if (system(buffer) == -1)
+                {
+                    strcpy(buffer, "Erro ao acessar o diretório.\n\0");
+                }
+                else
+                {
+                    strcpy(buffer, "Comando executado com sucesso.\n\0");
+                }
+                send(new_sockfd, buffer, strlen(buffer), 0);
+            }
+
+            //Checa se o comando é para criar um arquivo
+            else if (strncmp(buffer, "touch", 2) == 0)
+            {
+                if (system(buffer) == -1)
+                {
+                    strcpy(buffer, "Erro ao criar o arquivo.\n\0");
+                }
+                else
+                {
+                    strcpy(buffer, "Comando executado com sucesso.\n\0");
+                }
+                send(new_sockfd, buffer, strlen(buffer), 0);
+            }
+
+            //Checa se o comando é para remover um arquivo
+            else if ((strncmp(buffer, "rm", 1) == 0) && (strncmp(buffer, "rm -r ", 4) != 0))
+            {
+                if (system(buffer) == -1)
+                {
+                    strcpy(buffer, "Erro ao remover diretório.\n\0");
+                }
+                else
+                {
+                    strcpy(buffer, "Comando executado com sucesso.\n\0");
+                }
+                send(new_sockfd, buffer, strlen(buffer), 0);
+            }
+
+            //Checa se o comando é para sair do terminal
+            else if (strcmp(buffer, "exit") == 0) //Encerra conexão com um cliente quando o mesmo digitar exit
             {
                 strcpy(buffer, "Até\n\0");
                 send(new_sockfd, buffer, strlen(buffer), 0);
@@ -58,6 +134,16 @@ void *connect_thread(void *arg)
                 close(new_sockfd);
                 pthread_exit(NULL);
             }
+
+            //Qualquer outro comando é invalido
+            else
+            {
+                strcpy(buffer, "Comando Inválido\n\0");
+                send(new_sockfd, buffer, strlen(buffer), 0);
+            }
+
+            strcpy(buffer, "-> \0");
+            send(new_sockfd, buffer, strlen(buffer), 0);
             pthread_mutex_unlock(&mutex_manage_client); // Libera o mutex para o próximo
         }
     }
@@ -114,7 +200,7 @@ int main()
             perror("Error client");
             exit(1);
         }
-        strcpy(buffer, "Bem Vindo ao Sistema de Arquivos XingsssLing!\n Para sair do sistema apenas digite 'exit'\n -> \0");
+        strcpy(buffer, "Bem Vindo ao Sistema de Arquivos XingLing!\n Para sair do sistema apenas digite 'exit'\n -> \0");
         if (send(client, buffer, strlen(buffer), 0))
         {
             if ((pthread_create(&client_thread[cont], NULL, connect_thread, &client)) != 0)
