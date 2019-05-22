@@ -43,7 +43,7 @@ void entrar_diretorio(int new_sockfd)
 void mostrar_conteudo_diretorio(int new_sockfd)
 {
     FILE *fp;
-    char aux[255];
+    char aux[4096];
 
     fp = popen(buffer, "r");
     while (fgets(aux, sizeof(aux), fp) != NULL)

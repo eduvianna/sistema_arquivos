@@ -24,7 +24,6 @@ void *connect_thread(void *arg)
         if ((size_msg = recv(new_sockfd, buffer, BUFFER_SIZE, 0)) > 0)
         {
             pthread_mutex_lock(&mutex_manage_client); // Checa se o mutex está no estado liberado ou não
-            chdir(dir_atual);
             buffer[size_msg - 1] = '\0';
 
             //Checa se é para criar diretório
