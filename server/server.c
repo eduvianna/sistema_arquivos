@@ -12,8 +12,9 @@ void *connect_thread(void *arg)
 {
     int size_msg;
     int new_sockfd = *((int *)arg);
-    char dir_atual[BUFFER_SIZE], *temp;
+    char dir_atual[BUFFER_SIZE], dir_aux[BUFFER_SIZE], *temp;
     strcpy(dir_atual, dir_raiz);
+    strcpy(dir_aux, dir_raiz);
     chdir(dir_atual);
 
     //Tratamento de mensagens entre cliente e servidor

@@ -15,7 +15,7 @@
 
 #define PORT 3000
 #define BUFFER_SIZE 4096
-#define N_THREAD 10
+#define N_THREAD 2
 
 //Declaração buffer, diretório raiz e o diretório atual
 char buffer[BUFFER_SIZE], dir_raiz[BUFFER_SIZE];
