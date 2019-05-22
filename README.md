@@ -18,6 +18,6 @@ O sistema de arquivos implementado pode realizar as seguintes operações:
 
 #Como rodar o sistema ?
 
-1. Execute o makefile
-2. Após executado o script, execute o sistema digitando ./server/server
+1. Execute o makefile apenas rodando na raiz o comando make
+2. Execute o sistema digitando ./servidor
 3. Com a comunicação agora aberta, para você se comunicar com o socket TCP, abra um novo terminal e se você se encontra no linux execute o comando nc localhost 3000
