@@ -27,11 +27,11 @@ void remover_diretorio(int new_sockfd)
     send(new_sockfd, buffer, strlen(buffer), 0);
 }
 
-void entrar_diretorio(int new_sockfd, char *temp)
+void entrar_diretorio(int new_sockfd)
 {
-    if (chdir(temp) == 0)
+    if (chdir(buffer) == 0)
     {
-        strcpy(buffer, "\033[0;32m Acessório acessado com sucesso.\033[0m\n\0");
+        strcpy(buffer, "\033[0;32m Diretório acessado com sucesso.\033[0m\n\0");
     }
     else
     {

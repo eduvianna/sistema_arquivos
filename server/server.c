@@ -12,6 +12,9 @@ void *connect_thread(void *arg)
 {
     int size_msg;
     int new_sockfd = *((int *)arg);
+    char dir_atual[BUFFER_SIZE], *temp;
+    strcpy(dir_atual, dir_raiz);
+    chdir(dir_atual);
 
     //Tratamento de mensagens entre cliente e servidor
     while (1)
@@ -20,6 +23,7 @@ void *connect_thread(void *arg)
         if ((size_msg = recv(new_sockfd, buffer, BUFFER_SIZE, 0)) > 0)
         {
             pthread_mutex_lock(&mutex_manage_client); // Checa se o mutex está no estado liberado ou não
+            chdir(dir_atual);
             buffer[size_msg - 1] = '\0';
 
             //Checa se é para criar diretório
@@ -37,10 +41,10 @@ void *connect_thread(void *arg)
             // Checa se é para entrar no diretório
             else if (strncmp(buffer, "cd ", 3) == 0)
             {
-
                 temp = strtok(buffer, "cd ");
-
-                entrar_diretorio(new_sockfd, temp);
+                strcpy(buffer, temp);
+                entrar_diretorio(new_sockfd);
+                strcpy(dir_atual, buffer);
             }
 
             //Checa se é pra listar arquivos dentro de um diretório
@@ -151,7 +155,7 @@ int main()
         strcpy(buffer, "Bem Vindo ao Sistema de Arquivos XingLing!\n Para sair do sistema apenas digite 'exit'\n -> \0");
         if (send(client, buffer, strlen(buffer), 0))
         {
-            if ((pthread_create(&client_thread[cont], NULL, connect_thread, &client)) != 0)
+            if ((pthread_create(&client_thread[cont++], NULL, connect_thread, &client)) != 0)
             {
                 perror("Error Thread ");
             }
