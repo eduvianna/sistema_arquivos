@@ -35,9 +35,12 @@ void *connect_thread(void *arg)
             }
 
             // Checa se é para entrar no diretório
-            else if (strncmp(buffer, "cd", 2) == 0)
+            else if (strncmp(buffer, "cd ", 3) == 0)
             {
-                entrar_diretorio(new_sockfd);
+
+                temp = strtok(buffer, "cd ");
+
+                entrar_diretorio(new_sockfd, temp);
             }
 
             //Checa se é pra listar arquivos dentro de um diretório
@@ -132,6 +135,7 @@ int main()
 
     //Coloca a porta para escutar
     listen(sockfd, N_THREAD);
+    getcwd(dir_raiz, BUFFER_SIZE);
 
     int cont = 0; // contador de threads criadas
     while (1)
@@ -151,6 +155,7 @@ int main()
             {
                 perror("Error Thread ");
             }
+            //Ao estourar o limite de threads, o mesmo aguarda até todas as threads rodando fecharem
             if (cont >= N_THREAD)
             {
                 cont = 0;

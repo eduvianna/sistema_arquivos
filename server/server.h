@@ -17,8 +17,9 @@
 #define BUFFER_SIZE 4096
 #define N_THREAD 10
 
-//Declaração buffer
-char buffer[BUFFER_SIZE];
+//Declaração buffer, diretório raiz e o diretório atual
+char buffer[BUFFER_SIZE], dir_raiz[BUFFER_SIZE], dir_atual[BUFFER_SIZE], *temp;
+;
 
 // Inicializa thread
 pthread_mutex_t mutex_manage_client = PTHREAD_MUTEX_INITIALIZER;
@@ -29,7 +30,7 @@ void *connect_thread(void *arg);
 //Funções para executar comandos digitados pelos clientes
 void criar_diretorio(int new_sockfd);
 void remover_diretorio(int new_sockfd);
-void entrar_diretorio(int new_sockfd);
+void entrar_diretorio(int new_sockfd, char *temp);
 void mostrar_conteudo_diretorio(int new_sockfd);
 void criar_arquivo(int new_sockfd);
 void remover_arquivo(int new_sockfd);

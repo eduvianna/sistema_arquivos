@@ -27,11 +27,11 @@ void remover_diretorio(int new_sockfd)
     send(new_sockfd, buffer, strlen(buffer), 0);
 }
 
-void entrar_diretorio(int new_sockfd)
+void entrar_diretorio(int new_sockfd, char *temp)
 {
-    if (system(buffer) == 0)
+    if (chdir(temp) == 0)
     {
-        strcpy(buffer, "\033[0;32m Comando executado com sucesso.\033[0m\n\0");
+        strcpy(buffer, "\033[0;32m Acessório acessado com sucesso.\033[0m\n\0");
     }
     else
     {
@@ -56,7 +56,7 @@ void criar_arquivo(int new_sockfd)
 {
     if (system(buffer) == 0)
     {
-        strcpy(buffer, "\033[0;32m Comando executado com sucesso.\033[0m\n\0");
+        strcpy(buffer, "\033[0;32m Arquivo criado com sucesso.\033[0m\n\0");
     }
     else
     {
@@ -69,7 +69,7 @@ void remover_arquivo(int new_sockfd)
 {
     if (system(buffer) == 0)
     {
-        strcpy(buffer, "\033[0;32m Comando executado com sucesso.\033[0m\n\0");
+        strcpy(buffer, "\033[0;32m Arquivo removido com sucesso.\033[0m\n\0");
     }
     else
     {
